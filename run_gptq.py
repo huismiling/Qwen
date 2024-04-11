@@ -85,7 +85,9 @@ if __name__ == "__main__":
     tokenizer.pad_token_id = tokenizer.eod_id
     data = preprocess(json.load(open(args.data_path)), tokenizer, args.max_len)
 
-    model = AutoGPTQForCausalLM.from_pretrained(args.model_name_or_path, quantize_config, device_map="auto", trust_remote_code=True)
+    model = AutoGPTQForCausalLM.from_pretrained(args.model_name_or_path, 
+                                                quantize_config, 
+                                                device_map="auto", trust_remote_code=True)
 
     logging.basicConfig(
         format="%(asctime)s %(levelname)s [%(name)s] %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"

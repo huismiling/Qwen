@@ -23,7 +23,7 @@ MASTER_ADDR=${MASTER_ADDR:-localhost}
 # The port for communication
 MASTER_PORT=${MASTER_PORT:-6001}
 
-MODEL="Qwen/Qwen-7B" # Set the path if you do not want to load from huggingface directly
+MODEL="$PWD/Qwen-1_8B" # Set the path if you do not want to load from huggingface directly
 # ATTENTION: specify the path to your training data, which should be a json file consisting of a list of conversations.
 # See the section for finetuning in README for more information.
 DATA="path_to_data"
@@ -43,6 +43,10 @@ while [[ "$1" != "" ]]; do
         -d | --data )
             shift
             DATA=$1
+            ;;
+        --eval_data )
+            shift
+            EVAL_DATA=$1
             ;;
         -h | --help )
             usage
@@ -67,16 +71,19 @@ DISTRIBUTED_ARGS="
 torchrun $DISTRIBUTED_ARGS finetune.py \
     --model_name_or_path $MODEL \
     --data_path $DATA \
+    --eval_data_path $EVAL_DATA \
     --bf16 True \
     --output_dir output_qwen \
     --num_train_epochs 5 \
-    --per_device_train_batch_size 1 \
+    --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 16 \
+    --gradient_accumulation_steps 4 \
     --evaluation_strategy "no" \
+    --eval_steps 400 \
     --save_strategy "steps" \
-    --save_steps 1000 \
-    --save_total_limit 10 \
+    --save_steps 400 \
+    --save_total_limit 20 \
+    --save_only_model True \
     --learning_rate 1e-5 \
     --weight_decay 0.1 \
     --adam_beta2 0.95 \
@@ -84,7 +91,7 @@ torchrun $DISTRIBUTED_ARGS finetune.py \
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \
     --report_to "none" \
-    --model_max_length 512 \
+    --model_max_length 1024 \
     --gradient_checkpointing True \
     --lazy_preprocess True \
     --deepspeed finetune/ds_config_zero3.json
